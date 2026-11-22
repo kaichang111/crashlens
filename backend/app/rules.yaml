@@ -1,0 +1,107 @@
+# CrashLens fault rules — Texas Transportation Code.
+#
+# Each rule is evaluated once per driver. "self" is the driver the rule would
+# charge, "other" is the other driver. Every condition names a fact type; the
+# fact must exist for that actor and satisfy the comparison. The confidence of
+# a fired rule (c_r) is the lowest confidence among the facts that triggered it.
+#
+#   S_d = sum over fired rules of  weight * c_r * causation
+#   Fault_A = S_A / (S_A + S_B)
+#
+# Weights are reasoned estimates, not yet calibrated on real outcomes
+# (see POST /calibrate for the calibration mechanism).
+
+- id: red_light
+  title: Ran a red light
+  statute: "Tex. Transp. Code § 544.007"
+  url: "https://statutes.capitol.texas.gov/Docs/TN/htm/TN.544.htm#544.007"
+  primary: true
+  when:
+    all:
+      - {fact: signal_state, of: self, eq: red}
+  weight: 0.90
+  causation: 1.0
+  explain: "{self} crossed the stop line on a steady red light."
+
+- id: stop_sign
+  title: Failed to stop / yield at stop sign
+  statute: "Tex. Transp. Code § 545.153"
+  url: "https://statutes.capitol.texas.gov/Docs/TN/htm/TN.545.htm#545.153"
+  primary: true
+  when:
+    all:
+      - {fact: faced_stop_sign, of: self, eq: true}
+      - {fact: stopped_at_stop_sign, of: self, eq: false, as: stopped}
+  weight: 0.85
+  causation: 1.0
+  explain: "{self} entered the intersection past a stop sign without coming to a full stop."
+
+- id: left_turn_yield
+  title: Left turn failed to yield
+  statute: "Tex. Transp. Code § 545.152"
+  url: "https://statutes.capitol.texas.gov/Docs/TN/htm/TN.545.htm#545.152"
+  primary: true
+  when:
+    all:
+      - {fact: turning_left, of: self, eq: true}
+      - {fact: oncoming_ttc_s, of: self, lt: 4.0, as: ttc}
+      # a left-turner must yield unless there is evidence of a protected arrow;
+      # an unreadable light doesn't excuse the turn (missing_ok)
+      - {fact: signal_state, of: self, ne: green_arrow, as: light, missing_ok: true}
+  weight: 0.80
+  causation: 1.0
+  explain: "{self} turned left while {other} was {ttc:.1f} s away — close enough to be an immediate hazard."
+
+- id: following_too_closely
+  title: Followed too closely
+  statute: "Tex. Transp. Code § 545.062"
+  url: "https://statutes.capitol.texas.gov/Docs/TN/htm/TN.545.htm#545.062"
+  primary: true
+  when:
+    all:
+      - {fact: is_follower, of: self, eq: true}
+      - any:
+          - {fact: following_time_gap_s, of: self, lt: 2.0, as: gap}
+          - {fact: could_avoid, of: self, eq: false, as: avoid}
+  weight: 0.80
+  causation: 1.0
+  explain: "{self} was following {other} with a {gap:.1f} s gap, under the 2-second rule of thumb, and could not stop in the distance available."
+
+- id: unsafe_lane_change
+  title: Unsafe lane change
+  statute: "Tex. Transp. Code § 545.060"
+  url: "https://statutes.capitol.texas.gov/Docs/TN/htm/TN.545.htm#545.060"
+  primary: true
+  when:
+    all:
+      - {fact: lane_change, of: self, eq: true}
+      - {fact: lane_change_gap_s, of: self, lt: 1.5, as: gap}
+  weight: 0.75
+  causation: 1.0
+  explain: "{self} changed lanes into a {gap:.1f} s gap and made contact during the lane change."
+
+- id: unsafe_speed
+  title: Unsafe speed
+  statute: "Tex. Transp. Code § 545.351"
+  url: "https://statutes.capitol.texas.gov/Docs/TN/htm/TN.545.htm#545.351"
+  primary: false
+  when:
+    all:
+      - {fact: speed_over_limit_mph, of: self, gt: 5.0, as: over}
+  # 0.10 at 5 mph over, +0.05 per extra mph, capped at 0.40
+  weight: {base: 0.10, per_unit: 0.05, from: 5.0, cap: 0.40, fact: over}
+  causation: 0.5
+  explain: "{self} was going {over:.0f} mph over the posted limit."
+
+- id: failed_to_avoid
+  title: Failed to avoid (contributing)
+  statute: "General duty of care"
+  url: ""
+  primary: false
+  only_if_not_primary: true
+  when:
+    all:
+      - {fact: could_avoid, of: self, eq: true}
+  weight: 0.20
+  causation: 0.5
+  explain: "{self} had room to stop after the hazard appeared but did not avoid the crash."

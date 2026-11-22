@@ -1,0 +1,20 @@
+# dependencies and builds
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo
+backend/.venv/
+__pycache__/
+.pytest_cache/
+
+# case data: users' dashcam videos, frames, disputes and the SQLite DB (private, regenerated on start)
+backend/data/
+
+# model weights, downloaded by Ultralytics on first run
+*.pt
+
+# local secrets and editor files
+.env
+*.local
+.DS_Store
+Thumbs.db
+*.blend1

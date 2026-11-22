@@ -1,0 +1,8 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9
+pyyaml>=6
+numpy>=2
+openai>=1.40        # Nemotron narrative via NVIDIA's OpenAI-compatible endpoint (optional at runtime)
+pytest>=8
+httpx>=0.27

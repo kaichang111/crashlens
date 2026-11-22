@@ -1,0 +1,101 @@
+@import "tailwindcss";
+@import "@fontsource-variable/overpass";
+@import "@fontsource-variable/source-serif-4";
+
+/*
+  CrashLens design tokens.
+  Road-marking vocabulary: form-white paper, ink, MUTCD marking yellow used only where it means
+  something (the 50% line, impact, focus), and the two vehicle colours that carry meaning in the replay.
+  Type: Overpass (descends from Highway Gothic, the US road-sign face) for the interface;
+  Source Serif 4 for documents (report, plain-English summary).
+*/
+@theme {
+  --color-paper: #f7f8f6;
+  --color-panel: #ffffff;
+  --color-ink: #1e2226;
+  --color-ink2: #4a525a;
+  --color-muted: #6b747d;
+  --color-rule: #cdd2d7;
+  --color-rule2: #e6e9ec;
+  --color-sign: #f1b812;
+  --color-signink: #6e5200;
+  --color-veha: #1d5fc2;
+  --color-vehb: #c2362c;
+  --color-asphalt: #3a3f44;
+  --color-ok: #23633f;
+  --color-okbg: #e8f2ec;
+  --color-warn: #7a5600;
+  --color-warnbg: #fff4d1;
+  --color-bad: #a3271b;
+  --color-badbg: #fbe9e7;
+
+  --font-sans: "Overpass Variable", "Overpass", system-ui, sans-serif;
+  --font-serif: "Source Serif 4 Variable", "Source Serif 4", Georgia, serif;
+}
+
+html, body, #root { height: 100%; }
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  font-feature-settings: "tnum" 1;       /* tabular figures: speeds and percentages line up */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Keyboard focus is always visible, in marking yellow with an ink edge for contrast on any background */
+:focus-visible {
+  outline: 3px solid var(--color-sign);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--color-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+@layer components {
+  /* Controls get a small radius; media and panels stay square. No shadows, no hover animation. */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-[3px] bg-ink px-4 py-2 text-[15px] font-semibold text-white;
+  }
+  .btn:hover { background: #343a40; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-line {
+    @apply inline-flex items-center justify-center gap-2 rounded-[3px] border border-ink bg-panel px-4 py-2 text-[15px] font-semibold text-ink;
+  }
+  .btn-line:hover { background: var(--color-rule2); }
+  .btn-line:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-sm { @apply px-2.5 py-1 text-[13px]; }
+  .link { @apply font-semibold text-ink underline decoration-rule decoration-2 underline-offset-4; }
+  .link:hover { text-decoration-color: var(--color-ink); }
+
+  .field {
+    @apply mt-1 block w-full rounded-[3px] border border-rule bg-panel px-3 py-2 text-[15px] text-ink;
+  }
+  .field:focus { border-color: var(--color-ink); outline: none; }
+  .lbl { @apply text-[13px] font-semibold text-ink2; }
+
+  .tab { @apply border-b-2 border-transparent px-1 pb-1.5 text-[14px] font-semibold text-muted; }
+  .tab:hover { color: var(--color-ink); }
+  .tab-on { @apply border-ink text-ink; }
+
+  /* Vehicle markers, as on a collision diagram */
+  .veh { @apply inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-[2px] text-[12px] font-bold text-white; }
+  .veh-A { background: var(--color-veha); }
+  .veh-B { background: var(--color-vehb); }
+  .veh-both { background: var(--color-ink2); }
+
+  .skeleton { background: var(--color-rule2); }
+
+  .sec { @apply mt-7 mb-2 border-b border-rule pb-1 font-sans text-[15px] font-bold; }
+}
+
+.print-footer { display: none; }
+@media print {
+  @page { size: letter; margin: 14mm 14mm 18mm; }
+  .no-print { display: none !important; }
+  .print-footer { display: block; position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 9px; color: #555; }
+  body { background: white; }
+}

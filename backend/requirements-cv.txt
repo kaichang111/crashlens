@@ -1,0 +1,4 @@
+# Live video pipeline (Steps 1-3). Without these the API still serves cached demo cases.
+opencv-python>=4.10
+ultralytics>=8.3     # YOLO11 + ByteTrack; downloads yolo11s.pt on first run
+librosa>=0.10        # optional crash-sound cue
